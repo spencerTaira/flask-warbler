@@ -31,6 +31,7 @@ body.error-404 {
   font-size: 13px;
   font-weight: bold;
 }
+
 .link-button:focus {
   outline: none;
 }

@@ -23,7 +23,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['SQLALCHEMY_ECHO'] = False
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = True
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 toolbar = DebugToolbarExtension(app)
 
@@ -360,14 +360,13 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-    # breakpoint()
-    following = g.user.following
-    print(following, "##########FOLLOWING#############")
-    # breakpoint()
-    following_and_self_ids = [follow.id for follow in following]
-    following_and_self_ids.append(g.user.id)
+
     # filter by is user.id equal to message 
     if g.user:
+        following = g.user.following
+        following_and_self_ids = [follow.id for follow in following]
+        following_and_self_ids.append(g.user.id)
+
         messages = (Message
                     .query
                     .filter(Message.user_id.in_(following_and_self_ids))
