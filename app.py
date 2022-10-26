@@ -36,7 +36,7 @@ connect_db(app)
 
 @app.before_request
 def add_user_to_g():
-    """If we're logged in, add curr user to Flask global.""" #TODO: add to docstring about csrf
+    """If we're logged in, add curr user and csrf validation to Flask global."""
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
@@ -239,24 +239,16 @@ def profile():
         POST: Patch user details in table and redirect to /users/<user_id>
     """
 
-    if not g.user: #TODO: Can combine with session
+    if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
 
-    if session[CURR_USER_KEY] != g.user.id:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
-
-    user = User.query.get(g.user.id) #TODO: user instance already exists
+    user = g.user
 
     form = EditUserForm(obj=user)
 
     if form.validate_on_submit():
-        # user = User.authenticate(
-        #     g.user.username,
-        #     form.password.data)
-        if User.authenticate(user.username, form.password.data): #NOTE: instead of calling two times
-        # if user:
+        if User.authenticate(user.username, form.password.data):
             user.username = form.username.data
             user.email = form.email.data
             user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
@@ -264,7 +256,6 @@ def profile():
             user.bio = form.bio.data
 
             db.session.commit()
-            # print(g.user.username, "_________username")
             return redirect(f"/users/{user.id}")
         else:
             flash("Invalid credentials.", 'danger')
@@ -361,10 +352,9 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
 
-    # filter by is user.id equal to message 
+    # filter by is user.id equal to message
     if g.user:
-        following = g.user.following #NOTE: shortening to list comprehension
-        following_and_self_ids = [follow.id for follow in following]
+        following_and_self_ids = [f.id for f in g.user.following]
         following_and_self_ids.append(g.user.id)
 
         messages = (
@@ -373,7 +363,7 @@ def homepage():
             .filter(Message.user_id.in_(following_and_self_ids))
             .order_by(Message.timestamp.desc())
             .limit(100)
-            .all()) #NOTE: styling to keep yourself from realigning
+            .all())
 
         return render_template('home.html', messages=messages)
 
