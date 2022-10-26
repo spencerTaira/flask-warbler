@@ -1,6 +1,7 @@
 """SQLAlchemy models for Warbler."""
 
 from datetime import datetime
+from pickle import FALSE
 
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
@@ -76,6 +77,12 @@ class User(db.Model):
     )
 
     messages = db.relationship('Message', backref="user")
+
+    liked_messages = db.relationship(
+        'Message',
+        secondary='messages_liked',
+        backref='users_who_liked'
+    )
 
     followers = db.relationship(
         "User",
@@ -170,6 +177,29 @@ class Message(db.Model):
         nullable=False,
     )
 
+    # .users to reference User because of backref
+
+
+class MessagesLiked(db.Model):
+    """ Messaged Liked by Users """
+
+    __tablename__ = 'messages_liked'
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    message_id = db.Column(
+        db.Integer,
+        db.ForeignKey('messages.id'),
+        nullable=False
+    )
+    user_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id'),
+        nullable=False
+    )
 
 def connect_db(app):
     """Connect this database to provided Flask app.
@@ -180,3 +210,4 @@ def connect_db(app):
     app.app_context().push()
     db.app = app
     db.init_app(app)
+
