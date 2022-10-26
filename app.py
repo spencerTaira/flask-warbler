@@ -127,8 +127,7 @@ def logout():
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
     if form.validate_on_submit():
-        session.pop(CURR_USER_KEY)
-        # session[CURR_USER_KEY] = []
+        do_logout()
         return redirect("/")
     else:
         raise Unauthorized()
@@ -232,20 +231,7 @@ def stop_following(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
-#------------------------------------------------------------------------
+
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
     """Update profile for current user.
@@ -278,12 +264,13 @@ def profile():
             user.bio = form.bio.data
 
             db.session.commit()
+            print(g.user.username, "_________username")
             return redirect(f"/users/{user.id}")
         else:
             flash("Invalid credentials.", 'danger')
-            return render_template('/users/edit.html', form=form)
+            return render_template('/users/edit.html', form=form, user=g.user)
     else:
-        return render_template('/users/edit.html', form=form)
+        return render_template('/users/edit.html', form=form, user=g.user)
 
 
 @app.post('/users/delete')
@@ -374,10 +361,16 @@ def homepage():
     - logged in: 100 most recent messages of followed_users
     """
     # breakpoint()
-
+    following = g.user.following
+    print(following, "##########FOLLOWING#############")
+    # breakpoint()
+    following_and_self_ids = [follow.id for follow in following]
+    following_and_self_ids.append(g.user.id)
+    # filter by is user.id equal to message 
     if g.user:
         messages = (Message
                     .query
+                    .filter(Message.user_id.in_(following_and_self_ids))
                     .order_by(Message.timestamp.desc())
                     .limit(100)
                     .all())
@@ -402,3 +395,16 @@ def add_header(response):
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
     response.cache_control.no_store = True
     return response
+
+
+# Questions relation to Authentication
+# How is the logged in user being kept track of?
+    # Through the global object "g" and the session data
+        # session is the persisting data throughout the application
+# What is Flask's g object?
+    # g is the global object throughout the execution context
+# What is the purpose of add_user_to_g?
+    # To keep track of the user instance
+    # Access to user in the request
+# What does @app.before_request mean?
+    # Blueprint meant to run before any request call
