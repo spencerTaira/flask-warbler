@@ -6,8 +6,10 @@ from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm
-from models import db, connect_db, User, Message
+from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm, \
+    EditUserForm
+from models import DEFAULT_IMAGE_URL, db, connect_db, User, Message, \
+    DEFAULT_HEADER_IMAGE_URL
 
 load_dotenv()
 
@@ -128,9 +130,9 @@ def logout():
         session.pop(CURR_USER_KEY)
         # session[CURR_USER_KEY] = []
         return redirect("/")
-    else: 
+    else:
         raise Unauthorized()
-    
+
 
 
 ##############################################################################
@@ -160,7 +162,7 @@ def list_users():
 @app.get('/users/<int:user_id>')
 def show_user(user_id):
     """Show user profile."""
-    
+
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -230,12 +232,58 @@ def stop_following(follow_id):
 
     return redirect(f"/users/{g.user.id}/following")
 
-
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
+#------------------------------------------------------------------------
 @app.route('/users/profile', methods=["GET", "POST"])
 def profile():
-    """Update profile for current user."""
+    """Update profile for current user.
+        GET: Show a form to edit user profile
+        POST: Patch user details in table and redirect to /users/<user_id>
+    """
 
-    # IMPLEMENT THIS
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    if session[CURR_USER_KEY] != g.user.id:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
+    user = User.query.get(g.user.id)
+
+    form = EditUserForm(obj=user)
+
+    if form.validate_on_submit():
+        user = User.authenticate(
+            g.user.username,
+            form.password.data)
+
+        if user:
+            user.username = form.username.data
+            user.email = form.email.data
+            user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
+            user.header_image_url = form.header_image_url.data or DEFAULT_HEADER_IMAGE_URL
+            user.bio = form.bio.data
+
+            db.session.commit()
+            return redirect(f"/users/{user.id}")
+        else:
+            flash("Invalid credentials.", 'danger')
+            return render_template('/users/edit.html', form=form)
+    else:
+        return render_template('/users/edit.html', form=form)
 
 
 @app.post('/users/delete')
