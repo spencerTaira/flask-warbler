@@ -50,13 +50,18 @@
         <li><a href="/signup">Sign up</a></li>
         <li><a href="/login">Log in</a></li>
       {% else %}
+      
         <li>
           <a href="/users/{{ g.user.id }}">
             <img src="{{ g.user.image_url }}" alt="{{ g.user.username }}">
           </a>
         </li>
         <li><a href="/messages/new">New Message</a></li>
-        <li><a href="/logout">Log out</a></li>
+      <form action="/logout" method="POST">
+        {{ g.csrf_form.hidden_tag() }}
+        <li><button class="link-button">Log Out</button></li>
+        <!-- <a href="/logout">Log out</a> -->
+      </form>
       {% endif %}
 
     </ul>

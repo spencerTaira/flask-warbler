@@ -21,6 +21,22 @@ body.error-404 {
 }
 
 /* ======================= Nav */
+.link-button {
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: serif;
+  color: #66757f;
+  font-size: 13px;
+  font-weight: bold;
+}
+.link-button:focus {
+  outline: none;
+}
+.link-button:active {
+  color:red;
+}
 
 .navbar {
   background-color: #fff;

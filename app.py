@@ -4,8 +4,9 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, flash, redirect, session, g
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+from werkzeug.exceptions import Unauthorized
 
-from forms import UserAddForm, LoginForm, MessageForm
+from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm
 from models import db, connect_db, User, Message
 
 load_dotenv()
@@ -37,6 +38,7 @@ def add_user_to_g():
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
+        g.csrf_form = CSRFProtectForm()
 
     else:
         g.user = None
@@ -122,6 +124,13 @@ def logout():
 
     # IMPLEMENT THIS AND FIX BUG
     # DO NOT CHANGE METHOD ON ROUTE
+    if form.validate_on_submit():
+        session.pop(CURR_USER_KEY)
+        # session[CURR_USER_KEY] = []
+        return redirect("/")
+    else: 
+        raise Unauthorized()
+    
 
 
 ##############################################################################
@@ -151,6 +160,7 @@ def list_users():
 @app.get('/users/<int:user_id>')
 def show_user(user_id):
     """Show user profile."""
+    
 
     if not g.user:
         flash("Access unauthorized.", "danger")
@@ -315,6 +325,7 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
+    # breakpoint()
 
     if g.user:
         messages = (Message
