@@ -10,7 +10,7 @@ def check_if_image(form,field):
     """
 
     if not(field.data.endswith(".jpg") or field.data.endswith(".png")):
-        raise ValidationError("Enter Valid Image URL")
+        raise ValidationError("Enter Valid Image URL") #NOTE: Checking extensions on image url
 
 class MessageForm(FlaskForm):
     """Form for adding/editing messages."""
