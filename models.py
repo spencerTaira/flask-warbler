@@ -182,7 +182,7 @@ class Message(db.Model):
     def is_liked_by(self, curr_user):
         """Is this message liked by current user?"""
 
-        return any(user.id for user in self.user_who_liked if user.id == curr_user.id)
+        return any(user.id for user in self.users_who_liked if user.id == curr_user.id)
         # found_liked_list = [
         #     user.id for user in self.users_who_liked if user.id == curr_user.id]
         # return len(found_liked_list) == 1

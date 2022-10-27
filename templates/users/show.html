@@ -21,23 +21,9 @@
             </span>
         <p>{{ message.text }}</p>
         {% if message.user.id != g.user.id %}
-          {% if message.is_liked_by(g.user) %}
             <div class="d-flex justify-content-end">
-              <a>
-                <form action="/messages/{{message.id}}/likedtoggle" method="POST">
-                  <button id="like" class="bi bi-hand-thumbs-up-fill"></button>
-                </form>
-              </a>
+              {% include "_like-button.html" %}
             </div>
-            {% else %}
-            <div class="d-flex justify-content-end">
-              <a>
-                <form action="/messages/{{message.id}}/likedtoggle" method="POST">
-                  <button id="like" class="bi bi-hand-thumbs-up"></button>
-                </form>
-              </a>
-            </div>
-          {% endif %}
         {% endif %}
       </div>
     </li>

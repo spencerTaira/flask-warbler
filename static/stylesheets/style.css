@@ -573,7 +573,7 @@ p.card-bio {
 }
 
 /* TODO: Move to rightful  */
-#like {
+.like {
   background: none;
   border: none;
   cursor: pointer;
@@ -583,7 +583,7 @@ p.card-bio {
   font-weight: bold;
 }
 
-#like:hover {
+.like:hover {
   color: #47addf;
   text-shadow:0px 0px 30px #47addf;
 }
