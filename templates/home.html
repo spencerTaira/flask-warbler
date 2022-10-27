@@ -56,7 +56,10 @@
               <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
-              <i class="bi bi-hand-thumbs-up"></i>
+              <form method="POST" action="/messages/{{ msg.id }}/likedtoggle">
+                {%  %}
+                <i class="bi bi-hand-thumbs-up"></i>
+              </form>
             </div>
           </li>
         {% endfor %}
