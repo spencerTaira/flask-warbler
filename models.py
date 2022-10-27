@@ -180,11 +180,12 @@ class Message(db.Model):
     # .users to reference User because of backref
 
     def is_liked_by(self, curr_user):
-        """Is this message liked by current user`?"""
+        """Is this message liked by current user?"""
 
-        found_liked_list = [
-            user.id for user in self.users_who_liked if user.id == curr_user.id]
-        return len(found_liked_list) == 1
+        return any(user.id for user in self.user_who_liked if user.id == curr_user.id)
+        # found_liked_list = [
+        #     user.id for user in self.users_who_liked if user.id == curr_user.id]
+        # return len(found_liked_list) == 1
 
 
 class MessagesLiked(db.Model):
@@ -207,6 +208,7 @@ class MessagesLiked(db.Model):
         db.ForeignKey('users.id'),
         nullable=False
     )
+    #TODO: Prevent the same message from being liked by the same person multiple times
 
 def connect_db(app):
     """Connect this database to provided Flask app.

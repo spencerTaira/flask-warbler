@@ -124,8 +124,6 @@ def logout():
 
     form = g.csrf_form
 
-    # IMPLEMENT THIS AND FIX BUG
-    # DO NOT CHANGE METHOD ON ROUTE
     if form.validate_on_submit():
         do_logout()
         return redirect("/")
@@ -275,6 +273,7 @@ def show_liked_messages(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('/users/messages_liked.html', user=user)
 
+
 @app.post('/users/delete')
 def delete_user():
     """Delete user.
@@ -355,19 +354,20 @@ def liked_toggle(message_id):
     """
         Input: message_id (integer)
         Output: redirect to root.
-        Adds or removes record from messages_liked table and redirects to root
+        Adds or removes record from messages_liked table and redirects to reference
     """
-
+    #TODO: CSRF protection
     messages_liked = MessagesLiked.query.filter(
-        MessagesLiked.message_id == message_id).all()
+        MessagesLiked.message_id == message_id).all() #TODO: filter by user who liked not find all one_or_none
 
+    #TODO: move toggle_like logic into the model
     if not messages_liked:
         new_like = MessagesLiked(message_id=message_id, user_id=g.user.id)
 
         db.session.add(new_like)
         db.session.commit()
     else:
-        user_message_liked = [
+        user_message_liked = [ #variable name (should be plural)
             ml for ml in messages_liked if ml.user_id == g.user.id]
 
         if user_message_liked:

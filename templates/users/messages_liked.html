@@ -23,7 +23,7 @@
         <p>{{ message.text }}</p>
         <div class="d-flex justify-content-end">
           <a>
-            <form action="/messages/{{ message.id }}/likedtoggle" method="POST">
+            <form action="/messages/{{ message.id }}/likedtoggle" method="POST"> <!--CSRF protection-->
               <button id="like" class="bi bi-hand-thumbs-up-fill"></button>
             </form>
           </a>

@@ -67,17 +67,13 @@
               {% if msg.user.id != g.user.id %}
                 {% if msg.is_liked_by(g.user) %}
                 <div class="d-flex justify-content-end">
-                  <a>
-                    <form action="/messages/{{msg.id}}/likedtoggle" method="POST">
-                      <button id="like" class="bi bi-hand-thumbs-up-fill"></button>
-                    </form>
-                  </a>
+                  {% includes "_like-button.html" %}
                 </div>
                 {% else %}
                 <div class="d-flex justify-content-end">
                   <a>
                     <form action="/messages/{{msg.id}}/likedtoggle" method="POST">
-                      <button id="like" class="bi bi-hand-thumbs-up"></button>
+                      <button id="like" class="bi bi-hand-thumbs-up"></button> <!-- remove once we add if jinja to like-button.html also remove a-tag; all ID's must be unique change to class-->
                     </form>
                   </a>
                 </div>
