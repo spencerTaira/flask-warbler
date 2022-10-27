@@ -453,7 +453,7 @@ p.card-bio {
 
 #home-aside > .user-card {
   margin-top: 0;
-  overflow: hidden;
+  /* overflow: hidden; NOTE: Still up for judgement*/
 }
 
 #home-aside > .user-card .card-link {
@@ -483,7 +483,7 @@ p.card-bio {
 }
 
 #home-aside .stat h4 {
-  text-align: left;
+  text-align: center;
 }
 
 /* ========================== Signup/Login */

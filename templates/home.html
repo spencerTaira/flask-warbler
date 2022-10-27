@@ -14,8 +14,8 @@
                  class="card-image">
             <p>@{{ g.user.username }}</p>
           </a>
-          <ul class="user-stats nav nav-pills">
-              <li class="stat">
+          <ul class="user-stats nav nav-pills row d-flex justify-content-start">
+              <li class="stat col-4">
                 <p class="small">Messages</p>
                 <h4>
                   <a href="/users/{{ g.user.id }}">
@@ -23,7 +23,7 @@
                   </a>
                 </h4>
               </li>
-              <li class="stat">
+              <li class="stat col-4">
                 <p class="small">Following</p>
                 <h4>
                   <a href="/users/{{ g.user.id }}/following">
@@ -31,7 +31,7 @@
                   </a>
                 </h4>
               </li>
-              <li class="stat">
+              <li class="stat col-4">
                 <p class="small">Followers</p>
                 <h4>
                   <a href="/users/{{ g.user.id }}/followers">
@@ -39,7 +39,7 @@
                   </a>
                 </h4>
               </li>
-              <li class="stat">
+              <li class="stat col-4">
                 <p class="small">Liked</p>
                 <h4>
                   <a href="/users/{{ g.user.id }}/likedmessages">
