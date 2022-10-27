@@ -1,6 +1,7 @@
 <!--TODO: CSRF-->
   <a>
     <form action="/messages/{{message.id}}/likedtoggle" method="POST">
+      {{ form.hidden_tag() }}
       <button class="like bi bi-hand-thumbs-up{% if message.is_liked_by(g.user) %}-fill{% endif %}"></button>
     </form>
   </a>
