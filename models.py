@@ -179,6 +179,13 @@ class Message(db.Model):
 
     # .users to reference User because of backref
 
+    def is_liked_by(self, curr_user):
+        """Is this message liked by current user`?"""
+
+        found_liked_list = [
+            user for user in self.followers if user == curr_user]
+        return len(found_liked_list) == 1
+
 
 class MessagesLiked(db.Model):
     """ Messaged Liked by Users """
