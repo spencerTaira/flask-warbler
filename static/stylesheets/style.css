@@ -571,8 +571,14 @@ p.card-bio {
   flex: 1;
 }
 
+/* TODO: Move to rightful  */
 i {
   position: absolute;
   right: 20px;
   bottom: 10px;
 }
+
+/* button{
+  z-index: 10;
+
+} */

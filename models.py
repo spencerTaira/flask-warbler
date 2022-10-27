@@ -183,7 +183,7 @@ class Message(db.Model):
         """Is this message liked by current user`?"""
 
         found_liked_list = [
-            user for user in self.followers if user == curr_user]
+            user.id for user in self.users_who_liked if user.id == curr_user.id]
         return len(found_liked_list) == 1
 
 

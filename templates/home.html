@@ -57,8 +57,11 @@
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
               <form method="POST" action="/messages/{{ msg.id }}/likedtoggle">
-                {%  %}
-                <i class="bi bi-hand-thumbs-up"></i>
+                {% if msg.is_liked_by(g.user) %}
+                  <span class="icon"><i class="bi bi-hand-thumbs-up-fill"></i></span>
+                {% else %}
+                  <button class="bi bi-hand-thumbs-up"></button>
+                {% endif %}
               </form>
             </div>
           </li>
@@ -68,3 +71,5 @@
 
   </div>
 {% endblock %}
+
+<div class="btn btn_red"><span class="icon"></span><a href="#">Crimson</a><span></span></div>

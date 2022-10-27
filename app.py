@@ -369,22 +369,22 @@ def liked_toggle(message_id):
 
     if not messages_liked:
         # print("Hello Im here__________________________")
-        new_like = MessagesLiked(message_id=message_id, user_id=300) 
-        #TODO: change user_id number to g.user.id
+        new_like = MessagesLiked(message_id=message_id, user_id=g.user.id) 
+
         db.session.add(new_like)
         db.session.commit()
         # msg.append(g.user)
         # db.session.commit()
     else:
         user_message_liked = [
-            ml for ml in messages_liked if ml.user_id == 300]
-        # TODO: change to g.user.id ()
+            ml for ml in messages_liked if ml.user_id == g.user.id]
+
         if user_message_liked:
             db.session.delete(user_message_liked[0])
             db.session.commit()
         else: 
-            new_like = MessagesLiked(message_id=message_id, user_id=300) 
-            #TODO: change user_id number to g.user.id
+            new_like = MessagesLiked(message_id=message_id, user_id=g.user.id) 
+
             db.session.add(new_like)
             db.session.commit()
     
@@ -394,13 +394,6 @@ def liked_toggle(message_id):
         #     MessagesLiked.query.filter( 
         #         ( message_id == MessagesLiked.message_id ) & ( 300 == MessagesLiked.user_id ) ).delete()
 
-            
-        
-    # if messages_liked
-    #     # we are unliking 
-    # else:
-    #     # 
-    
 
 
 
