@@ -2,7 +2,7 @@
 
 from csv import DictReader
 from app import db
-from models import User, Message, Follows
+from models import User, Message, Follows, MessagesLiked
 
 db.drop_all()
 db.create_all()

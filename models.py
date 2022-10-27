@@ -183,15 +183,15 @@ class Message(db.Model):
         """Is this message liked by current user?"""
 
         return any(user.id for user in self.users_who_liked if user.id == curr_user.id)
-        # found_liked_list = [
-        #     user.id for user in self.users_who_liked if user.id == curr_user.id]
-        # return len(found_liked_list) == 1
+
 
 
 class MessagesLiked(db.Model):
     """ Messaged Liked by Users """
 
     __tablename__ = 'messages_liked'
+
+    # __table_args__ = (db.UniqueConstraint(message_id, user_id),)
 
     id = db.Column(
         db.Integer,
@@ -203,12 +203,40 @@ class MessagesLiked(db.Model):
         db.ForeignKey('messages.id'),
         nullable=False
     )
+
     user_id = db.Column(
         db.Integer,
         db.ForeignKey('users.id'),
         nullable=False
     )
+
+    __table_args__ = (db.UniqueConstraint(message_id, user_id),)
+
+
     #TODO: Prevent the same message from being liked by the same person multiple times
+    
+    @classmethod
+    def toggle_liked(cls, message_id, user_id):
+        """ Is the message currently liked by current user? 
+            Add or remove record from messages_liked table
+        """
+
+        message_liked = cls.query.filter(
+        (user_id == cls.user_id) & 
+        (cls.message_id == message_id)
+        ).one_or_none()
+
+
+        if not message_liked:
+            new_like = cls(message_id=message_id, user_id=user_id)
+
+            db.session.add(new_like)
+            db.session.commit()
+        else:
+            db.session.delete(message_liked)
+            db.session.commit()
+
+
 
 def connect_db(app):
     """Connect this database to provided Flask app.

@@ -37,8 +37,6 @@ connect_db(app)
 @app.before_request
 def add_user_to_g():
     """If we're logged in, add curr user and csrf validation to Flask global."""
-    # g.csrf_form = CSRFProtectForm() NOTE: In relation to line 407, this would create
-    # everytime even when they are logged out
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
@@ -358,33 +356,13 @@ def liked_toggle(message_id):
         Output: redirect to root.
         Adds or removes record from messages_liked table and redirects to reference
     """
-    #TODO: CSRF protection
+
     form = g.csrf_form
 
-    messages_liked = MessagesLiked.query.filter(
-        MessagesLiked.message_id == message_id).all() #TODO: filter by user who liked not find all one_or_none
+    if not form.validate_on_submit():
+        raise Unauthorized
 
-    # messages_liked = MessagesLiked.query.filter(g.user.id == MessagesLiked.message_id)
-
-
-    #TODO: move toggle_like logic into the model
-    if not messages_liked:
-        new_like = MessagesLiked(message_id=message_id, user_id=g.user.id)
-
-        db.session.add(new_like)
-        db.session.commit()
-    else:
-        user_message_liked = [ #variable name (should be plural)
-            ml for ml in messages_liked if ml.user_id == g.user.id]
-
-        if user_message_liked:
-            db.session.delete(user_message_liked[0])
-            db.session.commit()
-        else:
-            new_like = MessagesLiked(message_id=message_id, user_id=g.user.id)
-
-            db.session.add(new_like)
-            db.session.commit()
+    MessagesLiked.toggle_liked(message_id, g.user.id)
 
     return redirect(request.referrer)
 
@@ -400,8 +378,6 @@ def homepage():
     - anon users: no messages
     - logged in: 100 most recent messages of followed_users
     """
-
-    # form = g.csrf_form. NOTE: put token inside when g.user exists
 
     if g.user:
         form = g.csrf_form
@@ -419,24 +395,6 @@ def homepage():
         return render_template('home.html', messages=messages, form=form)
     else:
         return render_template('home-anon.html')
-
-    # # filter by is user.id equal to message
-    # if g.user:
-    #     following_and_self_ids = [f.id for f in g.user.following]
-    #     following_and_self_ids.append(g.user.id)
-
-    #     messages = (
-    #         Message
-    #         .query
-    #         .filter(Message.user_id.in_(following_and_self_ids))
-    #         .order_by(Message.timestamp.desc())
-    #         .limit(100)
-    #         .all())
-
-    #     return render_template('home.html', messages=messages, form=form)
-
-    # else:
-    #     return render_template('home-anon.html')
 
 
 ##############################################################################
