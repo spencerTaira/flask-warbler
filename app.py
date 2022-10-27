@@ -9,7 +9,7 @@ from werkzeug.exceptions import Unauthorized
 from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm, \
     EditUserForm
 from models import DEFAULT_IMAGE_URL, db, connect_db, User, Message, \
-    DEFAULT_HEADER_IMAGE_URL
+    DEFAULT_HEADER_IMAGE_URL, MessagesLiked
 
 load_dotenv()
 
@@ -338,6 +338,71 @@ def delete_message(message_id):
     db.session.commit()
 
     return redirect(f"/users/{g.user.id}")
+
+#===========================================================================
+#===========================================================================
+#===========================================================================
+#===========================================================================
+#===========================================================================
+#===========================================================================
+#===========================================================================
+#===========================================================================
+#===========================================================================
+#===========================================================================
+@app.post('/messages/<int:message_id>/likedtoggle')
+def liked_toggle(message_id):
+    """ 
+        Input: message_id (integer)
+        Output: redirect to root.
+        1. Check first
+        2. add to messages_liked (add user_id and message_id)
+            3. From message id use relation to find user_id
+                Check if user_id matches global id
+                If it does, we show filled
+                If 
+    """
+
+    # find message_id in messages_liked
+    # msg = Message.query.get(message_id)
+    messages_liked = MessagesLiked.query.filter(
+        MessagesLiked.message_id == message_id).all()
+
+    if not messages_liked:
+        # print("Hello Im here__________________________")
+        new_like = MessagesLiked(message_id=message_id, user_id=300) 
+        #TODO: change user_id number to g.user.id
+        db.session.add(new_like)
+        db.session.commit()
+        # msg.append(g.user)
+        # db.session.commit()
+    else:
+        user_message_liked = [
+            ml for ml in messages_liked if ml.user_id == 300]
+        # TODO: change to g.user.id ()
+        if user_message_liked:
+            db.session.delete(user_message_liked[0])
+            db.session.commit()
+        else: 
+            new_like = MessagesLiked(message_id=message_id, user_id=300) 
+            #TODO: change user_id number to g.user.id
+            db.session.add(new_like)
+            db.session.commit()
+    
+    return redirect("/")
+
+        # if 300 in [ml.user_id for ml in messages_liked]:
+        #     MessagesLiked.query.filter( 
+        #         ( message_id == MessagesLiked.message_id ) & ( 300 == MessagesLiked.user_id ) ).delete()
+
+            
+        
+    # if messages_liked
+    #     # we are unliking 
+    # else:
+    #     # 
+    
+
+
 
 
 ##############################################################################
