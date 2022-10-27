@@ -250,7 +250,7 @@ def profile():
             user.username = form.username.data
             user.email = form.email.data
             user.image_url = form.image_url.data or DEFAULT_IMAGE_URL
-            user.header_image_url = form.header_image_url.data or DEFAULT_HEADER_IMAGE_URL
+            user.header_image_url = form.header_image_url.data or DEFAULT_HEADER_IMAGE_URL #TODO: Look at how they implemented above
             user.bio = form.bio.data
 
             db.session.commit()
