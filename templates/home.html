@@ -56,13 +56,19 @@
               <a href="/users/{{ msg.user.id }}">@{{ msg.user.username }}</a>
               <span class="text-muted">{{ msg.timestamp.strftime('%d %B %Y') }}</span>
               <p>{{ msg.text }}</p>
-              <form method="POST" action="/messages/{{ msg.id }}/likedtoggle">
                 {% if msg.is_liked_by(g.user) %}
-                  <span class="icon"><i class="bi bi-hand-thumbs-up-fill"></i></span>
+                <a>
+                  <form action="/messages/{{msg.id}}/likedtoggle" method="POST">
+                    <button class="bi bi-hand-thumbs-up-fill"></button>
+                  </form>
+                </a>
                 {% else %}
-                  <button class="bi bi-hand-thumbs-up"></button>
+                <a>
+                  <form action="/messages/{{msg.id}}/likedtoggle" method="POST">
+                    <button class="bi bi-hand-thumbs-up"></button>
+                  </form>
+                </a>
                 {% endif %}
-              </form>
             </div>
           </li>
         {% endfor %}
