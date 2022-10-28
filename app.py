@@ -363,6 +363,7 @@ def liked_toggle(message_id):
         raise Unauthorized
 
     MessagesLiked.toggle_liked(message_id, g.user.id)
+    db.session.commit()
 
     from_url = request.form['from-url']
     return redirect(from_url)
