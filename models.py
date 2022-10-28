@@ -191,8 +191,6 @@ class MessagesLiked(db.Model):
 
     __tablename__ = 'messages_liked'
 
-    # __table_args__ = (db.UniqueConstraint(message_id, user_id),)
-
     id = db.Column(
         db.Integer,
         primary_key=True
@@ -213,16 +211,14 @@ class MessagesLiked(db.Model):
     __table_args__ = (db.UniqueConstraint(message_id, user_id),)
 
 
-    #TODO: Prevent the same message from being liked by the same person multiple times
-    
     @classmethod
     def toggle_liked(cls, message_id, user_id):
-        """ Is the message currently liked by current user? 
+        """ Is the message currently liked by current user?
             Add or remove record from messages_liked table
         """
 
         message_liked = cls.query.filter(
-        (user_id == cls.user_id) & 
+        (user_id == cls.user_id) &
         (cls.message_id == message_id)
         ).one_or_none()
 

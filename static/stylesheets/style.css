@@ -572,7 +572,6 @@ p.card-bio {
   flex: 1;
 }
 
-/* TODO: Move to rightful  */
 .like {
   background: none;
   border: none;
@@ -581,13 +580,11 @@ p.card-bio {
   color: #66757f;
   font-size: 20px;
   font-weight: bold;
+  position: relative;
+  z-index: 100;
 }
 
 .like:hover {
   color: #47addf;
   text-shadow:0px 0px 30px #47addf;
 }
-/* button{
-  z-index: 10;
-
-} */
