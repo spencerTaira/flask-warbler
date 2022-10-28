@@ -45,9 +45,13 @@ class UserModelTestCase(TestCase):
         self.client = app.test_client()
 
     def tearDown(self):
+        """ Clean up fouled transactions """
+
         db.session.rollback()
 
     def test_user_model(self):
+        """  """
+
         u1 = User.query.get(self.u1_id)
 
         # User should have no messages & no followers
@@ -137,3 +141,64 @@ class UserModelTestCase(TestCase):
             html = resp.get_data(as_text=True)
             self.assertEqual(resp.status_code, 200)
             self.assertIn("Username already taken", html)
+
+    #8 
+    def test_user_model_authenticate(self):
+
+        with self.client as c: 
+            data = {
+                'username' : 'u1',
+                'password': 'password'
+            }
+
+            resp = c.post(
+                '/login',
+                data=data,
+                follow_redirects=True
+            )
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Homepage', html)
+            self.assertIn('u1', html)
+
+    #9 & #10 
+    def test_user_model_authenticate_fail(self):
+
+        with self.client as c:
+
+            # This is checking for when username is invalid
+            data = {
+                'username' : 'invalid_username',
+                'password': 'password'
+            }
+
+            resp = c.post(
+                '/login',
+                data=data,
+                follow_redirects=True
+            )
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Login', html)
+            self.assertIn('Invalid credentials', html)
+
+            # This is checking for when password is invalid
+            data = {
+                'username' : 'u1',
+                'password': 'invalid_password'
+            }
+
+            resp = c.post(
+                '/login',
+                data=data,
+                follow_redirects=True
+            )
+
+            html = resp.get_data(as_text=True)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Login', html)
+            self.assertIn('Invalid credentials', html)
+
+    
