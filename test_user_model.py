@@ -9,6 +9,7 @@ import os
 from unittest import TestCase
 
 from models import db, User, Message, Follows, connect_db
+from sqlalchemy.exc import IntegrityError
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -50,7 +51,6 @@ class UserModelTestCase(TestCase):
         db.session.rollback()
 
     def test_user_model(self):
-        """  """
 
         u1 = User.query.get(self.u1_id)
 
@@ -104,63 +104,37 @@ class UserModelTestCase(TestCase):
     def test_user_signup(self):
 
         with self.client as c:
-            data = {
-                'username': 'test_user',
-                'password': 'password',
-                'email': 'user@gmail.com'
-            }
 
-            resp = c.post(
-                '/signup',
-                data=data,
-                follow_redirects=True
-            )
+            u3 = User.signup("test_user", "user@gmail.com", "password", None)
 
-            html = resp.get_data(as_text=True)
-
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn('Homepage', html)
-            self.assertIn('test_user', html)
+            self.assertIsInstance(u3, User)
 
     #7
     def test_user_signup_fail(self):
 
-        with self.client as c:
-            data = {
-                'username': 'u1',
-                'password': 'password',
-                'email': 'user@gmail.com'
-            }
+        # If username already exists
+        with self.assertRaises(IntegrityError):
+            u3 = User.signup("u1", "user@gmail.com", "password", None)
+            db.session.add(u3)
+            db.session.commit()
+            
 
-            resp = c.post(
-                '/signup',
-                data=data,
-                follow_redirects=True
-            )
-
-            html = resp.get_data(as_text=True)
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn("Username already taken", html)
+        # If email already exists
+        with self.assertRaises(IntegrityError):
+            db.session.rollback()
+            u4 = User.signup("u3", "u1@email.com", "password", None)
+            db.session.add(u4)
+            db.session.commit()
+        
 
     #8 
     def test_user_model_authenticate(self):
 
         with self.client as c: 
-            data = {
-                'username' : 'u1',
-                'password': 'password'
-            }
 
-            resp = c.post(
-                '/login',
-                data=data,
-                follow_redirects=True
-            )
+            u1 = User.authenticate("u1", "password")
 
-            html = resp.get_data(as_text=True)
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn('Homepage', html)
-            self.assertIn('u1', html)
+            self.assertIsInstance(u1, User)
 
     #9 & #10 
     def test_user_model_authenticate_fail(self):
@@ -168,37 +142,27 @@ class UserModelTestCase(TestCase):
         with self.client as c:
 
             # This is checking for when username is invalid
-            data = {
-                'username' : 'invalid_username',
-                'password': 'password'
-            }
+            u1 = User.authenticate("u1", "pas")
+            self.assertFalse(u1)
 
-            resp = c.post(
-                '/login',
-                data=data,
-                follow_redirects=True
-            )
-
-            html = resp.get_data(as_text=True)
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn('Login', html)
-            self.assertIn('Invalid credentials', html)
+            u2 = User.authenticate("user", "password")
+            self.assertFalse(u2)
 
             # This is checking for when password is invalid
-            data = {
-                'username' : 'u1',
-                'password': 'invalid_password'
-            }
+            # data = {
+            #     'username' : 'u1',
+            #     'password': 'invalid_password'
+            # }
 
-            resp = c.post(
-                '/login',
-                data=data,
-                follow_redirects=True
-            )
+            # resp = c.post(
+            #     '/login',
+            #     data=data,
+            #     follow_redirects=True
+            # )
 
-            html = resp.get_data(as_text=True)
-            self.assertEqual(resp.status_code, 200)
-            self.assertIn('Login', html)
-            self.assertIn('Invalid credentials', html)
+            # html = resp.get_data(as_text=True)
+            # self.assertEqual(resp.status_code, 200)
+            # self.assertIn('Login', html)
+            # self.assertIn('Invalid credentials', html)
 
-    
+
