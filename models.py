@@ -218,8 +218,8 @@ class MessagesLiked(db.Model):
         """
 
         message_liked = cls.query.filter(
-        (user_id == cls.user_id) &
-        (cls.message_id == message_id)
+            (user_id == cls.user_id) &
+            (cls.message_id == message_id)
         ).one_or_none()
 
 
@@ -227,11 +227,8 @@ class MessagesLiked(db.Model):
             new_like = cls(message_id=message_id, user_id=user_id)
 
             db.session.add(new_like)
-            db.session.commit()
         else:
             db.session.delete(message_liked)
-            db.session.commit()
-
 
 
 def connect_db(app):
