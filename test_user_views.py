@@ -43,13 +43,19 @@ class UserBaseViewTestCase(TestCase):
         User.query.delete()
 
         u1 = User.signup("u1", "u1@email.com", "password", None)
-        db.session.add(u1)
+        u2 = User.signup("u2", "u2@email.com", "password", None)
+        u3 = User.signup("u3", "u3@email.com", "password", None)
+        db.session.add_all([u1, u2, u3])
 
+        u1.following.append(u2)
+        u3.following.append(u1)
         # m1 = Message(text="m1-text", user_id=u1.id)
         # db.session.add_all([m1])
         db.session.commit()
 
         self.u1_id = u1.id
+        self.u2_id = u2.id
+        self.u3_id = u3.id
         # self.m1_id = m1.id
 
         self.client = app.test_client()
@@ -166,13 +172,13 @@ class UserAddViewTestCase(UserBaseViewTestCase):
 
             resp = c.post('/logout', follow_redirects=True)
             html = resp.get_data(as_text=True)
-            
+
             # assert session.get(CURR_USER_KEY) == None NOTE: another test
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn('Home Signup', html)
             self.assertEqual(session.get(CURR_USER_KEY), None)
-            
+
 
     def test_show_users_list(self):
 
@@ -221,23 +227,173 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             self.assertIn("Home Signup", html)
             self.assertIn("Access unauthorized.", html)
 
-            
+    def test_user_following(self):
 
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
 
-        # Since we need to change the session to mimic logging in,
-        # we need to use the changing-session trick:
-    
+        resp = c.get(f'users/{self.u1_id}/following')
+        html = resp.get_data(as_text=True)
 
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn("CODE FOR TESTING: Following", html)
+        self.assertIn('u2', html)
 
+    def test_user_following_invalid(self):
 
-        # with self.client as c:
-        #     with c.session_transaction() as sess:
-        #         sess[CURR_USER_KEY] = self.u1_id
+        with self.client as c:
+            resp = c.get(f'users/{self.u1_id}/following', follow_redirects=True)
+            html = resp.get_data(as_text=True)
 
-        #     # Now, that session setting is saved, so we can have
-        #     # the rest of ours test
-        #     resp = c.post("/messages/new", data={"text": "Hello"})
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Home Signup", html)
+            self.assertIn("Access unauthorized.", html)
 
-        #     self.assertEqual(resp.status_code, 302)
+    def test_user_followers(self):
 
-        #     Message.query.filter_by(text="Hello").one()
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get(f'users/{self.u1_id}/followers')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("CODE FOR TESTING: Followers", html)
+            self.assertIn('u3', html)
+
+    def test_user_followers_invalid(self):
+
+        with self.client as c:
+            resp = c.get(f'users/{self.u1_id}/followers', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Home Signup", html)
+            self.assertIn("Access unauthorized.", html)
+
+    def test_user_start_following(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.post(f'users/follow/{self.u3_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            user = User.query.get(self.u1_id)
+            following = user.following
+            following_u3 = any(f for f in following if f.id == self.u3_id)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("CODE FOR TESTING: Following", html)
+            self.assertIn('u3', html)
+            self.assertTrue(following_u3)
+
+    def test_user_start_following_invalid(self):
+
+        with self.client as c:
+            resp = c.post(f'users/follow/{self.u3_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Home Signup", html)
+            self.assertIn("Access unauthorized.", html)
+
+    def test_user_stop_following(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.post(f'users/stop-following/{self.u2_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            user = User.query.get(self.u1_id)
+            following = user.following
+            following_u2 = any(f for f in following if f.id == self.u2_id)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("CODE FOR TESTING: Following", html)
+            self.assertEqual(following_u2, False)
+
+    def test_user_stop_following_invalid(self):
+
+        with self.client as c:
+            resp = c.post(f'users/stop-following/{self.u2_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Home Signup", html)
+            self.assertIn("Access unauthorized.", html)
+
+    def test_user_edit_profile_get(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get('/users/profile')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('CODE FOR TEST: User Profile Edit', html)
+
+    def test_user_edit_profile_post(self):
+
+            with self.client as c:
+                with c.session_transaction() as sess:
+                    sess[CURR_USER_KEY] = self.u1_id
+
+                data = {
+                    'username': 'u0',
+                    'email': 'u1@gmail.com',
+                    'password': 'password'
+                }
+                resp = c.post(
+                    '/users/profile',
+                    data=data,
+                    follow_redirects=True)
+                html = resp.get_data(as_text=True)
+
+                user = User.query.get(self.u1_id)
+
+                self.assertEqual(resp.status_code, 200)
+                self.assertIn('Users Show', html)
+                self.assertIn('u0', html)
+                self.assertEqual('u0', user.username)
+
+    def test_user_edit_profile_post_invalid_data(self):
+
+            with self.client as c:
+                with c.session_transaction() as sess:
+                    sess[CURR_USER_KEY] = self.u1_id
+
+                data = {
+                    'username': 'u0',
+                    'email': 'u1@gmail.com',
+                    'password': 'pass'
+                }
+                resp = c.post(
+                    '/users/profile',
+                    data=data,
+                    follow_redirects=True)
+                html = resp.get_data(as_text=True)
+
+                user = User.query.get(self.u1_id)
+
+                self.assertEqual(resp.status_code, 200)
+                self.assertIn('Invalid credentials.', html)
+                self.assertIn('u0', html)
+
+    def test_user_edit_profile_invalid(self):
+
+        with self.client as c:
+
+            resp = c.get('/users/profile', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Home Signup", html)
+            self.assertIn("Access unauthorized.", html)
