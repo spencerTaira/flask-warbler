@@ -1,9 +1,5 @@
-<!--TODO: CSRF-->
-  <a>
-    <form action="/messages/{{message.id}}/likedtoggle" method="POST">
-      {{ form.hidden_tag() }}
-      <button class="like bi bi-hand-thumbs-up{% if message.is_liked_by(g.user) %}-fill{% endif %}"></button>
-    </form>
-  </a>
-
-  <!--TODO: REMOVE ANCHOR TAGS-->
+<form action="/messages/{{message.id}}/likedtoggle" method="POST">
+  {{ form.hidden_tag() }}
+  <input type="hidden" name="from-url" value="{{request.url}}">
+  <button class="like bi bi-hand-thumbs-up{% if message.is_liked_by(g.user) %}-fill{% endif %}"></button>
+</form>
