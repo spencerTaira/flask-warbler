@@ -59,9 +59,8 @@ class UserBaseViewTestCase(TestCase):
         db.session.rollback()
 
 class UserAddViewTestCase(UserBaseViewTestCase):
-    def test_signup_user(self):
-        # Since we need to change the session to mimic logging in,
-        # we need to use the changing-session trick:
+    def test_user_signup(self):
+
 
         with self.client as c:
 
@@ -106,7 +105,66 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             # self.assertIn('Signup', html)
             # self.assertIn('Username already taken', html)
 
+    def test_user_login(self):
 
+        with self.client as c:
+            #test get request
+            resp = c.get('/login')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Login', html)
+
+            #test valid post request
+            data = {
+                'username': 'u1',
+                'password': 'password'
+            }
+            resp = c.post(
+                '/login',
+                data=data,
+                follow_redirects=True
+            )
+
+            html = resp.get_data(as_text=True)
+
+            user = User.query.get(self.u1_id)
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn(f'Hello, {user.username}!', html)
+            self.assertIn('Homepage', html)
+
+            #test invalid post request
+            data = {
+                'username': 'u0',
+                'password': 'password'
+            }
+            resp = c.post(
+                '/login',
+                data=data,
+                follow_redirects=True
+            )
+
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Invalid credentials.', html)
+            self.assertIn('Login', html)
+
+
+    def test_user_logout(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.post('/logout', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Home Signup', html)
+            # self.assertEqual(sess.get(CURR_USER_KEY), False)
+        # Since we need to change the session to mimic logging in,
+        # we need to use the changing-session trick:
 
         # with self.client as c:
         #     with c.session_transaction() as sess:
