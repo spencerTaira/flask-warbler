@@ -8,6 +8,7 @@
 import os
 from unittest import TestCase
 
+from flask import session, url_for
 from models import db, Message, User, connect_db, Follows, MessagesLiked
 
 # BEFORE we import our app, let's set an environmental variable
@@ -88,22 +89,27 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             self.assertIn('Homepage', html)
             self.assertIn('test_user', html)
 
-            #test invalid post request
-            # data = {
-            #     'username': 'u1', #same username
-            #     'password': 'password',
-            #     'email': 'test_user1@gmail.com'
-            # }
-            # resp = c.post(
-            #     '/signup',
-            #     data=data,
-            #     follow_redirects=True
-            #     )
-            # html = resp.get_data(as_text=True)
-            # breakpoint()
-            # self.assertEqual(resp.status_code, 200)
-            # self.assertIn('Signup', html)
-            # self.assertIn('Username already taken', html)
+    def test_user_signup_invalid(self):
+
+        with self.client as c:
+            # test invalid post request
+            data = {
+                'username': 'u1', #same username
+                'password': 'password',
+                'email': 'test_user1@gmail.com'
+            }
+
+            resp = c.post(
+                '/signup',
+                data=data,
+                follow_redirects=True
+            )
+
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Signup', html)
+            self.assertIn('Username already taken', html)
 
     def test_user_login(self):
 
@@ -157,14 +163,72 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             with c.session_transaction() as sess:
                 sess[CURR_USER_KEY] = self.u1_id
 
+
             resp = c.post('/logout', follow_redirects=True)
             html = resp.get_data(as_text=True)
+            
+            # assert session.get(CURR_USER_KEY) == None NOTE: another test
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn('Home Signup', html)
-            # self.assertEqual(sess.get(CURR_USER_KEY), False)
+            self.assertEqual(session.get(CURR_USER_KEY), None)
+            
+
+    def test_show_users_list(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get('/users')
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Users Index", html)
+
+    def test_show_users_list_invalid(self):
+
+        with self.client as c:
+
+            resp = c.get('/users', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Access unauthorized.", html)
+
+    def test_user_profile(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+            resp = c.get(f'/users/{self.u1_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Users Show", html)
+
+    def test_user_profile_invalid(self):
+
+        with self.client as c:
+            # profile_url = url_for('show_user', user_id=self.u1_id)
+
+            # resp = c.get(profile_url, follow_redirects=True)
+            resp = c.get(f'/users/{self.u1_id}', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn("Home Signup", html)
+            self.assertIn("Access unauthorized.", html)
+
+            
+
+
         # Since we need to change the session to mimic logging in,
         # we need to use the changing-session trick:
+    
+
+
 
         # with self.client as c:
         #     with c.session_transaction() as sess:
