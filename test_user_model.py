@@ -66,8 +66,8 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(test_repr, u1_repr)
 
-    #2
-    def test_user_model_is_following(self):
+    #2 #TODO: add db.session.commit() after 73. Is u2 follow u1
+    def test_user_model_is_following(self): 
         u1 = User.query.get(self.u1_id)
         u2 = User.query.get(self.u2_id)
         u1.following.append(u2)
@@ -83,7 +83,7 @@ class UserModelTestCase(TestCase):
         is_following = u1.is_following(u2)
         self.assertEqual(is_following, False)
 
-    #4
+    #4 #TODO: Commit changes after 90
     def test_user_model_is_followed(self):
         u1 = User.query.get(self.u1_id)
         u2 = User.query.get(self.u2_id)
@@ -100,7 +100,7 @@ class UserModelTestCase(TestCase):
         is_followed = u1.is_followed_by(u2)
         self.assertEqual(is_followed, False)
 
-    #6
+    #6 #TODO: adding, 
     def test_user_signup(self):
 
         with self.client as c:
@@ -108,6 +108,8 @@ class UserModelTestCase(TestCase):
             u3 = User.signup("test_user", "user@gmail.com", "password", None)
 
             self.assertIsInstance(u3, User)
+            self.assertTrue(u3.password.startswith('$2b$')) #NOTE: testing password was hashed
+
 
     #7
     def test_user_signup_fail(self):
@@ -127,7 +129,7 @@ class UserModelTestCase(TestCase):
             db.session.commit()
         
 
-    #8 
+    #8 #TODO: query database for exact User instance. Check match of two
     def test_user_model_authenticate(self):
 
         with self.client as c: 
@@ -141,7 +143,7 @@ class UserModelTestCase(TestCase):
 
         with self.client as c:
 
-            # This is checking for when username is invalid
+            # This is checking for when username is invalid #clear comments/two separate tests
             u1 = User.authenticate("u1", "pas")
             self.assertFalse(u1)
 

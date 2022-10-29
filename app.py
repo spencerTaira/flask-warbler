@@ -9,7 +9,7 @@ from werkzeug.exceptions import Unauthorized
 from forms import UserAddForm, LoginForm, MessageForm, CSRFProtectForm, \
     EditUserForm
 from models import DEFAULT_IMAGE_URL, db, connect_db, User, Message, \
-    DEFAULT_HEADER_IMAGE_URL, MessagesLiked
+    DEFAULT_HEADER_IMAGE_URL, MessagesLiked, Follows
 
 load_dotenv()
 
@@ -266,12 +266,14 @@ def profile():
 def show_liked_messages(user_id):
     """ Show list of liked messages for this user """
 
+    form = g.csrf_form
+
     if not g.user:
             flash("Access unauthorized.", "danger")
             return redirect("/")
 
     user = User.query.get_or_404(user_id)
-    return render_template('/users/messages_liked.html', user=user)
+    return render_template('/users/messages_liked.html', user=user, form=form)
 
 
 @app.post('/users/delete')
@@ -284,6 +286,14 @@ def delete_user():
     if not g.user:
         flash("Access unauthorized.", "danger")
         return redirect("/")
+
+    MessagesLiked.query.filter(MessagesLiked.user_id == g.user.id).delete()
+    Message.query.filter(Message.user_id == g.user.id).delete()
+    Follows.query.filter(
+        (Follows.user_being_followed_id == g.user.id) | 
+        (Follows.user_following_id == g.user.id)
+        ).delete()
+
 
     do_logout()
 

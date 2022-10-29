@@ -40,7 +40,10 @@ app.config['WTF_CSRF_ENABLED'] = False
 
 class UserBaseViewTestCase(TestCase):
     def setUp(self):
+        MessagesLiked.query.delete()
+        Message.query.delete()
         User.query.delete()
+        
 
         u1 = User.signup("u1", "u1@email.com", "password", None)
         u2 = User.signup("u2", "u2@email.com", "password", None)
@@ -49,10 +52,15 @@ class UserBaseViewTestCase(TestCase):
 
         u1.following.append(u2)
         u3.following.append(u1)
-        # m1 = Message(text="m1-text", user_id=u1.id)
-        # db.session.add_all([m1])
-        db.session.commit()
+        db.session.flush()
 
+        m1 = Message(text="m1-text", user_id=u1.id)
+        db.session.add_all([m1])
+        
+        # Create link for user and liked message
+        u1.liked_messages.append(m1)
+
+        db.session.commit()
         self.u1_id = u1.id
         self.u2_id = u2.id
         self.u3_id = u3.id
@@ -145,7 +153,7 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             self.assertIn(f'Hello, {user.username}!', html)
             self.assertIn('Homepage', html)
 
-            #test invalid post request
+            #test invalid post request #TODO: break to another test
             data = {
                 'username': 'u0',
                 'password': 'password'
@@ -212,7 +220,7 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             html = resp.get_data(as_text=True)
 
             self.assertEqual(resp.status_code, 200)
-            self.assertIn("Users Show", html)
+            self.assertIn("Users Show", html) #TODO: test that you are seeing user information
 
     def test_user_profile_invalid(self):
 
@@ -238,7 +246,7 @@ class UserAddViewTestCase(UserBaseViewTestCase):
 
         self.assertEqual(resp.status_code, 200)
         self.assertIn("CODE FOR TESTING: Following", html)
-        self.assertIn('u2', html)
+        self.assertIn('u2', html) #TODO: assertNotIn someone you are not following
 
     def test_user_following_invalid(self):
 
@@ -261,7 +269,7 @@ class UserAddViewTestCase(UserBaseViewTestCase):
 
             self.assertEqual(resp.status_code, 200)
             self.assertIn("CODE FOR TESTING: Followers", html)
-            self.assertIn('u3', html)
+            self.assertIn('u3', html) #TODO: assertNotIn someone you are not following
 
     def test_user_followers_invalid(self):
 
@@ -282,7 +290,7 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             resp = c.post(f'users/follow/{self.u3_id}', follow_redirects=True)
             html = resp.get_data(as_text=True)
 
-            user = User.query.get(self.u1_id)
+            user = User.query.get(self.u1_id) #NOTE: dont neccessarily need
             following = user.following
             following_u3 = any(f for f in following if f.id == self.u3_id)
 
@@ -313,7 +321,7 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             user = User.query.get(self.u1_id)
             following = user.following
             following_u2 = any(f for f in following if f.id == self.u2_id)
-
+#TODO: assert user is not in the page
             self.assertEqual(resp.status_code, 200)
             self.assertIn("CODE FOR TESTING: Following", html)
             self.assertEqual(following_u2, False)
@@ -397,3 +405,34 @@ class UserAddViewTestCase(UserBaseViewTestCase):
             self.assertEqual(resp.status_code, 200)
             self.assertIn("Home Signup", html)
             self.assertIn("Access unauthorized.", html)
+
+    def test_user_liked_messages(self):
+
+        with self.client as c:
+                with c.session_transaction() as sess:
+                    sess[CURR_USER_KEY] = self.u1_id
+
+                resp=c.get(f'/users/{self.u1_id}/likedmessages', follow_redirects=True)
+                html = resp.get_data(as_text=True)   
+
+                self.assertEqual(resp.status_code, 200)
+                self.assertIn('User Liked Messages', html)
+                self.assertIn('m1-text', html)
+
+    def test_user_deleted(self):
+
+        with self.client as c:
+            with c.session_transaction() as sess:
+                sess[CURR_USER_KEY] = self.u1_id
+
+
+            resp = c.post('/users/delete', follow_redirects=True)
+            html = resp.get_data(as_text=True)
+
+            user = User.query.get(self.u1_id)
+
+            self.assertEqual(resp.status_code, 200)
+            self.assertIn('Signup', html)
+            self.assertEqual(user, None)
+
+
